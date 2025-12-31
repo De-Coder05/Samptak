@@ -31,6 +31,21 @@ def focal_loss(gamma=2.0, alpha=0.25):
     
     return focal_loss_fixed
 
+@tf.keras.utils.register_keras_serializable(package="Custom")
+class CustomScaleLayer(tf.keras.layers.Layer):
+    def __init__(self, scale=1.0, offset=0.0, **kwargs):
+        super(CustomScaleLayer, self).__init__(**kwargs)
+        self.scale = scale
+        self.offset = offset
+
+    def call(self, inputs):
+        return inputs * self.scale + self.offset
+    
+    def get_config(self):
+        config = super(CustomScaleLayer, self).get_config()
+        config.update({'scale': self.scale, 'offset': self.offset})
+        return config
+
 # Load model - crack detection
 model_path = 'models/best_model.h5'
 model = None
@@ -39,7 +54,10 @@ def load_prediction_model():
     global model
     if os.path.exists(model_path):
         try:
-            custom_objects = {'focal_loss_fixed': focal_loss(gamma=2.0, alpha=0.25)}
+            custom_objects = {
+                'focal_loss_fixed': focal_loss(gamma=2.0, alpha=0.25),
+                'CustomScaleLayer': CustomScaleLayer
+            }
             model = tf.keras.models.load_model(model_path, custom_objects=custom_objects)
             print(f"✅ Model loaded from {model_path}")
         except Exception as e:
