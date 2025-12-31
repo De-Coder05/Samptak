@@ -62,9 +62,11 @@ def health():
     }
 
 # CORS configuration
+ALLOWED_ORIGINS = [
     "*", # Allow all origins for Vercel deployment
     "http://localhost:3000",
     "http://localhost:5173",
+]
 
 app.add_middleware(
     CORSMiddleware,
