@@ -43,27 +43,25 @@ Your model file (`models/best_model.h5`) is likely ~400MB. GitHub has a 100MB fi
 
 ---
 
-## Part 2: Deploy Frontend to Vercel ⚡
+## Part 2: Deploy Frontend to Vercel ⚡ (Online Dashboard)
 
-1.  **Create a Vercel Account**: [vercel.com](https://vercel.com)
-2.  **Install Vercel CLI** (Recommended):
-    ```bash
-    npm install -g vercel
-    ```
-3.  **Deploy**:
-    Run this command from the root of your project:
-    ```bash
-    cd frontend
-    vercel
-    ```
-    *   Accept default settings.
-    *   Wait for deployment to finish.
-4.  **Connect to Backend**:
-    *   Go to your **Vercel Dashboard** -> **Settings** -> **Environment Variables**.
-    *   Add a new variable:
+1.  **Go to Vercel**: [vercel.com/new](https://vercel.com/new)
+2.  **Import Project**:
+    *   Connect your GitHub account.
+    *   Find the **Samptak** repository and click **Import**.
+3.  **Configure Project**:
+    *   **Framework Preset**: Select **Vite**.
+    *   **Root Directory**: Click "Edit" and select `frontend`.
+4.  **Environment Variables**:
+    *   Expand the "Environment Variables" section.
+    *   Add:
         *   **Key**: `VITE_API_URL`
-        *   **Value**: `https://your-backend-url.onrender.com` (The URL from Part 1)
-    *   **Redeploy**: Go to **Deployments**, click the three dots on the latest deployment, and click **Redeploy** to apply the environment variable.
+        *   **Value**: `https://your-backend-url.onrender.com` (The URL you got from Render in Part 1)
+5.  **Deploy**:
+    *   Click **Deploy**.
+    *   Wait for the build to complete.
+
+Your frontend is now live! 🚀
 
 ---
 
