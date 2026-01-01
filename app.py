@@ -39,6 +39,8 @@ class CustomScaleLayer(tf.keras.layers.Layer):
         self.offset = offset
 
     def call(self, inputs):
+        if isinstance(inputs, (list, tuple)):
+            return inputs[0] + inputs[1] * self.scale
         return inputs * self.scale + self.offset
     
     def get_config(self):
