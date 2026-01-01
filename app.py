@@ -49,23 +49,27 @@ class CustomScaleLayer(tf.keras.layers.Layer):
         return config
 
 # Load model - crack detection
-model_path = 'models/best_model.h5'
-model = None
+model_path = 'models/model.tflite'
+interpreter = None
+input_details = None
+output_details = None
 
 def load_prediction_model():
-    global model
+    global interpreter, input_details, output_details
     if os.path.exists(model_path):
         try:
-            custom_objects = {
-                'focal_loss_fixed': focal_loss(gamma=2.0, alpha=0.25),
-                'CustomScaleLayer': CustomScaleLayer
-            }
-            model = tf.keras.models.load_model(model_path, custom_objects=custom_objects)
-            print(f"✅ Model loaded from {model_path}")
+            # Load TFLite model
+            interpreter = tf.lite.Interpreter(model_path=model_path)
+            interpreter.allocate_tensors()
+            
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+            
+            print(f"✅ TFLite Model loaded from {model_path}")
         except Exception as e:
-            print(f"❌ Error loading model: {e}")
+            print(f"❌ Error loading TFLite model: {e}")
     else:
-        print(f"⚠️  Model not found at {model_path}. Please run src/models/train_model.py first.")
+        print(f"⚠️  Model not found at {model_path}. Please run convert_to_tflite.py first.")
 
 # Initial load
 load_prediction_model()
@@ -78,13 +82,14 @@ def index():
 def health():
     return {
         'status': 'healthy', 
-        'model_loaded': model is not None
+        'model_loaded': interpreter is not None
     }
 
 # CORS configuration
 ALLOWED_ORIGINS = [
     "*", # Allow all origins for Vercel deployment
     "http://localhost:3000",
+    "http://localhost:127.0.0.1:3000",
     "http://localhost:5173",
 ]
 
@@ -110,45 +115,32 @@ def preprocess_image(image: Image.Image):
     # Convert to array
     img_array = np.array(image, dtype=np.float32)
     
-    # InceptionResNetV2 preprocessing (expects pixels 0-255 or -1 to 1 depending on implementation, 
-    # but preprocess_input handles it. Keras InceptionResNetV2 usually expects inputs [0, 255] then converts)
-    # The previous code for InceptionResNetV2 did:
-    # img_array = img_array * 255.0  (if it was 0-1)
-    # tf.keras.applications.inception_resnet_v2.preprocess_input(img_array)
-    # Here our array is already 0-255 from PIL.
-    
+    # Preprocess input (same as training)
     img_array = np.expand_dims(img_array, axis=0)
     img_array = preprocess_input(img_array)
     
     return img_array
 
 def predict_crack(image: Image.Image):
-    """Crack detection: crack vs non-crack"""
-    if model is None:
+    """Crack detection using TFLite"""
+    if interpreter is None:
         return {'error': True, 'message': 'Model not loaded correctly.'}
 
     try:
         # Preprocess
         img_array = preprocess_image(image)
         
-        # Predict
-        prediction = model.predict(img_array, verbose=0)
+        # Set input tensor
+        interpreter.set_tensor(input_details[0]['index'], img_array)
+        
+        # Run inference
+        interpreter.invoke()
+        
+        # Get output tensor
+        prediction = interpreter.get_tensor(output_details[0]['index'])
         score = float(prediction[0][0])
         
-        # Sigmoid output: 0 to 1.
-        # Assuming 1 is Class 1, 0 is Class 0.
-        # We need to know which class is which.
-        # flow_from_directory sorts alphanumerically by default: 'Faulty', 'Normal'.
-        # Faulty: 0, Normal: 1.
-        # Wait, usually indices are assigned alphabetically.
-        # Faulty -> 0
-        # Normal -> 1
-        # So low score (<0.5) is Faulty, high score (>0.5) is Normal?
-        # Let's verify class indices. 'Faulty' comes before 'Normal'.
-        # Usually sigmoid near 0 is class 0, near 1 is class 1.
-        # So Score -> Probability of being Normal.
-        # Let's assume Faulty is 0, Normal is 1.
-        
+        # Probability logic (assuming 0=Faulty, 1=Normal based on previous findings)
         probability_faulty = 1 - score
         
         # Threshold 0.5
