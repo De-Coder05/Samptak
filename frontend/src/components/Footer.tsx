@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -28,11 +28,8 @@ const Footer = () => {
             <a href="https://github.com/De-Coder05/Samptak" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-card/50 border border-border/30 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all">
               <Github className="w-5 h-5 text-muted-foreground" />
             </a>
-            <a href="#" className="w-10 h-10 rounded-lg bg-card/50 border border-border/30 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg bg-card/50 border border-border/30 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all">
               <Linkedin className="w-5 h-5 text-muted-foreground" />
-            </a>
-            <a href="#" className="w-10 h-10 rounded-lg bg-card/50 border border-border/30 flex items-center justify-center hover:border-primary/50 hover:bg-primary/10 transition-all">
-              <Twitter className="w-5 h-5 text-muted-foreground" />
             </a>
           </div>
         </div>
